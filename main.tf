@@ -2,13 +2,13 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "4.0.0"  # Specify the exact version
+      version = "4.0.0" # Specify the exact version
     }
   }
 }
 
 provider "aws" {
-  region = "us-east-1"  # Set the region in the provider block
+  region = "us-east-1" # Set the region in the provider block
 }
 
 module "s3_bucket" {
