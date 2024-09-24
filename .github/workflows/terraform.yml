@@ -82,13 +82,12 @@ jobs:
           TERRAFORM_CLI_PATH: ${{ runner.temp }}
 
       - name: Save .terraform Directory
-        run: |
-          ls -R ./.terraform
-      - name: Save terraform directory   
         uses: actions/upload-artifact@v3
         with:
           name: terraform-directory
           path: ./.terraform
+          if-no-files-found: warn
+          include-hidden-files: true  # Ensure hidden files like .terraform are included
         env:
           TERRAFORM_CLI_PATH: ${{ runner.temp }}
 
