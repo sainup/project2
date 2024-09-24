@@ -52,6 +52,9 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
+      - name: List Files after Init
+        run: ls -la  # This will list all files, including hidden ones, to verify lock file creation
+
       - name: Terraform Plan
         run: terraform plan -out=tfplan && terraform show tfplan
         env:
@@ -78,8 +81,8 @@ jobs:
         with:
           name: terraform-lock-file
           path: ./.terraform.lock.hcl
-        env:
-          TERRAFORM_CLI_PATH: ${{ runner.temp }}
+          if-no-files-found: warn
+          include-hidden-files: true  # Make sure to include hidden files
 
       - name: Save .terraform Directory
         uses: actions/upload-artifact@v3
@@ -88,8 +91,6 @@ jobs:
           path: ./.terraform
           if-no-files-found: warn
           include-hidden-files: true  # Ensure hidden files like .terraform are included
-        env:
-          TERRAFORM_CLI_PATH: ${{ runner.temp }}
 
   apply:
     needs: plan
@@ -116,6 +117,9 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: terraform-directory
+
+      - name: List Files before Apply
+        run: ls -la  # Check that all required files are present, including hidden files
 
       - name: Terraform Apply
         run: terraform apply tfplan
