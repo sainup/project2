@@ -52,6 +52,15 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
+      - name: Check Lock File Exists
+        run: |
+          if [ -f ".terraform.lock.hcl" ]; then
+            echo "Lock file exists."
+          else
+            echo "Lock file does not exist."
+            exit 1
+          fi
+
       - name: Terraform Plan
         run: terraform plan -out=tfplan && terraform show tfplan
         env:
@@ -69,6 +78,7 @@ jobs:
         with:
           name: terraform-lock-file
           path: .terraform.lock.hcl
+
 
   apply:
     needs: plan
@@ -96,3 +106,4 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
