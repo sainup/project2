@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -39,6 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -62,11 +64,18 @@ jobs:
           name: tfplan
           path: ./tfplan
 
+      - name: Save Lock File Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-lock-file
+          path: .terraform.lock.hcl
+
   apply:
     needs: plan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -76,6 +85,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: tfplan
+
+      - name: Download Lock File Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: terraform-lock-file
 
       - name: Terraform Apply
         run: terraform apply tfplan
