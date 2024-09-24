@@ -51,7 +51,7 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -out=tfplan
       - name: Save Plan Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: tfplan
           path: ./tfplan
@@ -71,7 +71,7 @@ jobs:
         run: |
           echo "AWS credentials configured."
       - name: Download Plan Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: tfplan
       - name: Terraform Apply
