@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -28,7 +27,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Terraform Format
-        run: terraform fmt -diff -write=true
+        run: terraform fmt -diff -write=true  # Automatically format files and show changes
+        
 
       - name: Terraform Validate
         run: terraform validate
@@ -40,7 +40,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -52,14 +51,14 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Check Lock File Exists
+      # List all files and directories to help find the .terraform.lock.hcl file
+      - name: List all files and directories
+        run: ls -R  # List directories and files recursively
+
+      # Search for the .terraform.lock.hcl file to determine its location
+      - name: Find lock file location
         run: |
-          if [ -f ".terraform.lock.hcl" ]; then
-            echo "Lock file exists."
-          else
-            echo "Lock file does not exist."
-            exit 1
-          fi
+          find . -name ".terraform.lock.hcl"
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan && terraform show tfplan
@@ -67,25 +66,23 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Save Plan Artifact
+      - name: Save Plan Artifact  # Save the plan to be used in the apply stage
         uses: actions/upload-artifact@v3
         with:
           name: tfplan
           path: ./tfplan
 
-      - name: Save Lock File Artifact
+      - name: Save Lock File Artifact  # Save the lock file if it exists
         uses: actions/upload-artifact@v3
         with:
           name: terraform-lock-file
-          path: .terraform.lock.hcl
-
+          path: .terraform.lock.hcl  # Adjust the path if necessary (e.g. .terraform/.terraform.lock.hcl)
 
   apply:
     needs: plan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -96,7 +93,7 @@ jobs:
         with:
           name: tfplan
 
-      - name: Download Lock File Artifact
+      - name: Download Lock File Artifact  # Download the lock file artifact
         uses: actions/download-artifact@v3
         with:
           name: terraform-lock-file
@@ -106,4 +103,3 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
