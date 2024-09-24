@@ -27,8 +27,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Terraform Format
-        run: terraform fmt -diff -write=true  # Automatically format files and show changes
-        
+        run: terraform fmt -diff -write=true
 
       - name: Terraform Validate
         run: terraform validate
@@ -52,22 +51,33 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan && terraform show tfplan
+        run: terraform plan -out=tfplan
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Save Plan Artifact  # Save the plan to be used in the apply stage
+      - name: Save Plan Artifact
         uses: actions/upload-artifact@v3
         with:
           name: tfplan
           path: ./tfplan
 
-      - name: Save Lock File Artifact  # Save the lock file if it exists
+      - name: Check Lock File Exists
+        run: |
+          if [ -f ".terraform.lock.hcl" ]; then
+            echo "Lock file exists."
+          else
+            echo "Lock file does not exist."
+            exit 1
+          fi
+
+      - name: Save Lock File Artifact
         uses: actions/upload-artifact@v3
         with:
           name: terraform-lock-file
-          path: ./.terraform.lock.hcl  # The correct path
+          path: ./.terraform.lock.hcl
+          if-no-files-found: warn
+          include-hidden-files: false
 
   apply:
     needs: plan
@@ -84,7 +94,7 @@ jobs:
         with:
           name: tfplan
 
-      - name: Download Lock File Artifact  # Download the lock file artifact
+      - name: Download Lock File Artifact
         uses: actions/download-artifact@v3
         with:
           name: terraform-lock-file
