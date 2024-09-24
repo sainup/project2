@@ -51,15 +51,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      # List all files and directories to help find the .terraform.lock.hcl file
-      - name: List all files and directories
-        run: ls -R  # List directories and files recursively
-
-      # Search for the .terraform.lock.hcl file to determine its location
-      - name: Find lock file location
-        run: |
-          find . -name ".terraform.lock.hcl"
-
       - name: Terraform Plan
         run: terraform plan -out=tfplan && terraform show tfplan
         env:
@@ -76,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: terraform-lock-file
-          path: .terraform.lock.hcl  # Adjust the path if necessary (e.g. .terraform/.terraform.lock.hcl)
+          path: ./.terraform.lock.hcl  # The correct path
 
   apply:
     needs: plan
