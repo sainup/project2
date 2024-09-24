@@ -52,23 +52,11 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: List Files after Init
-        run: ls -la  # This will list all files, including hidden ones, to verify lock file creation
-
       - name: Terraform Plan
         run: terraform plan -out=tfplan && terraform show tfplan
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Check Lock File Exists
-        run: |
-          if [ -f ".terraform.lock.hcl" ]; then
-            echo "Lock file exists."
-          else
-            echo "Lock file does not exist."
-            exit 1
-          fi
 
       - name: Save Plan Artifact
         uses: actions/upload-artifact@v3
@@ -82,15 +70,6 @@ jobs:
           name: terraform-lock-file
           path: ./.terraform.lock.hcl
           if-no-files-found: warn
-          include-hidden-files: true  # Make sure to include hidden files
-
-      - name: Save .terraform Directory
-        uses: actions/upload-artifact@v3
-        with:
-          name: terraform-directory
-          path: ./.terraform
-          if-no-files-found: warn
-          include-hidden-files: true  # Ensure hidden files like .terraform are included
 
   apply:
     needs: plan
@@ -103,6 +82,12 @@ jobs:
         with:
           terraform_version: 1.4.6
 
+      - name: Terraform Init  # Re-run init to ensure all providers are downloaded
+        run: terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
       - name: Download Plan Artifact
         uses: actions/download-artifact@v3
         with:
@@ -112,14 +97,6 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: terraform-lock-file
-
-      - name: Download .terraform Directory
-        uses: actions/download-artifact@v3
-        with:
-          name: terraform-directory
-
-      - name: List Files before Apply
-        run: ls -la  # Check that all required files are present, including hidden files
 
       - name: Terraform Apply
         run: terraform apply tfplan
