@@ -18,7 +18,7 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.4.6
+          terraform_version: 1.4.6  # Ensure this is the same version across all jobs
 
       - name: Verify AWS Secrets
         run: |
@@ -56,7 +56,7 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.4.6
+          terraform_version: 1.4.6  # Ensure this is the same version across all jobs
 
       - name: Verify AWS Secrets
         run: |
@@ -73,7 +73,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan && terraform show tfplan  # Show plan output for debugging
+        run: terraform plan -out=tfplan && terraform show tfplan
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -85,10 +85,14 @@ jobs:
           path: ./tfplan
 
   apply:
-    needs: plan  # Ensure apply waits for the plan job to complete
+    needs: plan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.4.6  # Ensure this is the same version across all jobs
 
       - name: Verify AWS Secrets
         run: |
