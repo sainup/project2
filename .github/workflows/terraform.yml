@@ -75,12 +75,16 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: terraform-lock-file
-          path: ./.terraform.lock.hcl  # Ensuring correct path
+          path: ./.terraform.lock.hcl
           if-no-files-found: warn
           include-hidden-files: true
 
-      - name: List lock file details  # Debug step to verify file details
-        run: ls -la ./.terraform.lock.hcl
+      - name: Save .terraform Directory  # Save the .terraform directory for provider cache
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-directory
+          path: ./.terraform
+          if-no-files-found: warn
 
   apply:
     needs: plan
@@ -101,6 +105,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: terraform-lock-file
+
+      - name: Download .terraform Directory  # Download the .terraform directory for provider cache
+        uses: actions/download-artifact@v3
+        with:
+          name: terraform-directory
 
       - name: Terraform Apply
         run: terraform apply tfplan
