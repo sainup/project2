@@ -8,6 +8,7 @@ terraform {
 }
 
 //adding more comments to it for no reason.
+//Additioanlly addding even more
 provider "aws" {
   region = "us-east-1" # Set the region in the provider block
 }
