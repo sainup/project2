@@ -3,16 +3,16 @@ name: Terraform Pipeline
 on:
   push:
     branches:
-      - main  # Push to main will trigger the test job
+      - main       # Push triggers Test stage
   pull_request:
     branches:
-      - main  # Merge request to main branch triggers the plan job
+      - main       # MR triggers Plan stage
   release:
-    types: [published]  # Release triggers the apply job
+    types: [published]  # Release triggers Apply stage
 
 jobs:
   test:
-    if: github.event_name == 'push'  # Run only on push events
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -38,7 +38,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   plan:
-    if: github.event_name == 'pull_request'  # Run only on pull request events
+    if: github.event_name == 'pull_request'  # Plan runs only on PR (MR)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -71,12 +71,11 @@ jobs:
         with:
           name: terraform-lock-file
           path: ./.terraform.lock.hcl
-          include-hidden-files: true
           if-no-files-found: warn
+          include-hidden-files: true
 
   apply:
-    if: github.event_name == 'release'  # Run only on release events
-    needs: plan
+    if: github.event_name == 'release'  # Apply runs only on release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
