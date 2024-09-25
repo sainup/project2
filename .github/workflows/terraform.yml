@@ -3,16 +3,15 @@ name: Terraform Pipeline
 on:
   push:
     branches:
-      - main       # Push triggers Test stage
+      - main
   pull_request:
     branches:
-      - main       # MR triggers Plan stage
+      - main
   release:
-    types: [published]  # Release triggers Apply stage
+    types: [published]
 
 jobs:
   test:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -38,7 +37,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   plan:
-    if: github.event_name == 'pull_request'  # Plan runs only on PR (MR)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -60,22 +58,19 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Save Plan Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: tfplan
-          path: ./tfplan
+      - name: Save Plan Artifact to S3
+        run: aws s3 cp ./tfplan s3://sainup-s3-bucket-name-for-project2/tfplan
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Save Lock File Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: terraform-lock-file
-          path: ./.terraform.lock.hcl
-          if-no-files-found: warn
-          include-hidden-files: true
+      - name: Save Lock File Artifact to S3
+        run: aws s3 cp ./.terraform.lock.hcl s3://sainup-s3-bucket-name-for-project2/terraform.lock.hcl
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   apply:
-    if: github.event_name == 'release'  # Apply runs only on release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -91,15 +86,17 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Download Plan Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: tfplan
+      - name: Download Plan Artifact from S3
+        run: aws s3 cp s3://sainup-s3-bucket-name-for-project2/tfplan ./tfplan
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Download Lock File Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: terraform-lock-file
+      - name: Download Lock File Artifact from S3
+        run: aws s3 cp s3://sainup-s3-bucket-name-for-project2/terraform.lock.hcl ./.terraform.lock.hcl
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Terraform Apply
         run: terraform apply tfplan
