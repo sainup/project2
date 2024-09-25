@@ -10,6 +10,7 @@ terraform {
 //adding more comments to it for no reason.
 //Additioanlly addding even more
 //lets see
+// adding comment to test MR
 provider "aws" {
   region = "us-east-1" # Set the region in the provider block
 }
